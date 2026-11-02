@@ -68,6 +68,21 @@ const defaultScrollParentViewportSizeGetter = component => {
 const constrain = (props, state) => {
   const { length, minSize, type } = props;
   let { from, size, itemsPerRow } = state;
+
+  // A range that starts on a row boundary and ends on the last item is already
+  // normalized. Rounding its size up or clamping its start would move both
+  // edges without covering anything new, and the next frame would undo it.
+  if (
+    type !== 'simple' &&
+    from > 0 &&
+    itemsPerRow > 0 &&
+    size >= minSize &&
+    from % itemsPerRow === 0 &&
+    from + size === length
+  ) {
+    return state;
+  }
+
   size = Math.max(size, minSize);
   let mod = size % itemsPerRow;
   if (mod) size += itemsPerRow - mod;
